@@ -1,0 +1,150 @@
+<table cellspacing="0" cellpadding="0" class="search_result_tab">
+    <tr>
+        <th>选择</th>
+        <th>发布人</th>
+        <th width="200px">标题</th>
+        <th width="260px">发布信息</th>
+        <th>发布类型</th>
+        <th>联系人</th>
+        <th>联系人手机号</th>
+        <th><span class="slaes_among">信息照片</span></th>
+        <th><span class="slaes_among">所属城市</span></th>
+        <th><span class="slaes_among">发布日期</span></th>
+        <th><span class="slaes_among">截止日期</span></th>
+        <th><span class="slaes_among">状态</span></th>
+        <th width="100px">操作</th>
+    </tr>
+    <foreach name="ret.result" item="vo">
+        <tr data-type="<{$vo.id}>">
+            <td><input type="checkbox" value="<{$vo.id}>"></td>
+            <td><{$vo.user_id}></td>
+            <td><{$vo.title}></td>
+            <td style="position: relative;">
+                <div class="goods_name" title="<{$vo.title}>">
+                    <{$vo.info|sub_str}>
+                </div>
+            </td>
+            <td><{$youer_type[$vo['type']]}></td>
+            <td><{$vo.t_person}></td>
+            <td><{$vo.t_mobile}></td>
+            <td><{$vo.t_img}></td>
+            <td><{$vo.city}></td>
+            <td><{$vo.add_time}></td>
+            <td><{$vo.date}></td>
+            <td><{$status[$vo['status']]}></td>
+            <td class="t_finish">
+                <if condition="$type neq 1">
+                    <span class="goods_del" data-type="<{$vo.id}>">删除</span>
+                </if>
+                <if condition="$type eq 0 && !isset($user_type)">
+                    <span class="goods_look_up check" data-type="<{$vo.id}>">审核</span>
+                    <elseif condition="$type eq 1"/>
+                    <span class="goods_look_up" data-type="<{$vo.id}>" onclick="finishBuy(this);">完成交易</span>
+                    <elseif condition="$type eq -1"/>
+                    <span class="goods_look_up check" data-type="<{$vo.id}>">复审</span>
+                </if>
+
+                <if condition="isset($user_type)">
+                    <span class="goods_edit user_info" data-type="<{$user_type}>" view="edit">编辑</span>
+                    <span class="goods_look_up user_info" data-type="<{$user_type}>" view="look">查看</span>
+                </if>
+            </td>
+        </tr>
+    </foreach>
+</table>
+<script>
+    var curpage = "<{$ret.curpage}>";
+    var maxpage = "<{$ret.maxpage}>";
+    var status = "<{$type}>";
+    $(function () {
+        var totalnum = "<{$ret.totalnum}>";
+        generatePage(curpage, maxpage, totalnum);
+    });
+    function generatePage(pageNo, totalPage, totalRecords) {
+        //生成分页
+        kkpager.generPageHtml({
+            pno: pageNo,
+            //总页码
+            total: totalPage,
+            //总数据条数
+            totalRecords: totalRecords,
+            isGoPage: false,
+            mode: 'click',
+            click: function (n) {
+                this.selectPage(n);
+                gethtml(n, url)
+            }
+        }, true);
+    }
+    ;
+    $(".goods_del").click(function () {
+        var $this = $(this).parent().parent();
+        var id = $(this).data("type");
+        layer.confirm('确定要删除吗?', function (index) {
+            //do something
+            var url = "/Admin/Check/del_check";
+            var status = "<{$type}>";
+            var data = {id: id, status: status};
+            $.get(url, data, function (ret) {
+                if (ret == 1) {
+                    $this.remove();
+                    layer.msg("删除成功！");
+                    setTimeout(function () {
+                        layer.close(index);
+                    }, 3000);
+                }
+            }, "JSON")
+        });
+    });
+    $(".check").click(function () {
+        var id = $(this).parent().parent().data("type");
+        var url = "<{:U('/Admin/Check/checkStatus')}>?id=" + id + "&status=" + status;
+        layer.open({
+            type: 2,
+            title: '审核信息',
+            shadeClose: true,
+            shade: 0.1,
+            area: ['1000px', '700px'],
+            content: url//iframe的url
+        });
+    });
+    function finishBuy(vale) {
+        var id = $(vale).data("type");
+        var url = "<{:U('/Admin/Check/buy_finish')}>";
+        $.get(url, {id: id}, function (ret) {
+            if (ret.status == 1) {
+                layer.msg(ret.retmsg);
+                setTimeout(function () {
+                    location.reload();
+                }, 3000)
+            }
+        });
+    }
+        $(".user_info").click(function() {
+            var id = $(this).parent().parent().data("type");
+            var user_do = $(this).attr("view");
+            var user_type = $(this).data("type");
+            var url = "/Admin/Check/checkStatus?id="+id+"&user_type="+user_type+"&user_do="+user_do;
+
+            if (user_do == "look")var titile = "查看信息";
+            else if (user_do == "edit")var titile = "编辑发布信息";
+            layer.open({
+                type: 2,
+                title: '发布信息',
+                shadeClose: true,
+                shade: 0.01,
+                area: ['1000px', '700px'],
+                content: url//iframe的url
+            });
+        });
+
+    //      layer.open({
+    //                  type: 2,
+    //                  title: '新增分类',
+    //                  shadeClose: true,
+    //                  shade: 0.8,
+    //                  area: ['470px', '495px'],
+    //                  content: '/goods/catetory?cat_id=' + cat_id//iframe的url
+    //              });
+
+</script>
