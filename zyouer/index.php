@@ -25,7 +25,7 @@ define("ADMIN_SKIN",ADMIN_PATH."skin/default/");
 define("RAND",rand());
 // 定义应用目录
 define('APP_PATH','./Application/');
-
+define("TP",1);
 // 引入ThinkPHP入口文件
 require './ThinkPHP/ThinkPHP.php';
 
